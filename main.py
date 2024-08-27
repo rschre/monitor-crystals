@@ -16,12 +16,6 @@ from camera_handling import (
 camera = get_camera()
 converter = get_bgr_converter()
 
-sam_checkpoint = "sam_vit_h_4b8939.pth"
-model_type = "vit_h"
-
-sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-mask_generator = SamAutomaticMaskGenerator(sam)
-
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
 app = Dash(__name__, external_stylesheets=external_stylesheets)
@@ -40,25 +34,6 @@ app.layout = html.Div(
     ],
     style={"padding": "20px", "textAlign": "left"},
 )
-
-
-def show_annotations(anns):
-    sorted_anns = sorted(anns, key=(lambda x: x["area"]), reverse=True)
-
-    img = np.ones(
-        (
-            sorted_anns[0]["segmentation"].shape[0],
-            sorted_anns[0]["segmentation"].shape[1],
-            4,
-        )
-    )
-    img[:, :, 3] = 0
-    for ann in sorted_anns:
-        m = ann["segmentation"]
-        color_mask = np.concatenate([np.random.random(3), [0.35]])
-        img[m] = color_mask
-
-    return img
 
 
 @app.callback(
@@ -83,10 +58,7 @@ def update_graph(n, fig):
     grabResult = grab_single_frame(camera)
     img = get_img_from_grab_result(grabResult, converter)
 
-    mask = mask_generator.generate_mask(img)
-    anns = mask_generator.segment(mask)
-
-    fig = px.imshow(anns, title=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    fig = px.imshow(img, title=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     return fig
 
 
