@@ -1,4 +1,9 @@
 from dash import Dash, Input, Output, State, callback, dcc, html
+from pypylon import pylon
+
+import datetime
+
+import plotly.express as px
 
 from camera_handling import (
     get_bgr_converter,
@@ -14,71 +19,44 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
     [
         html.H1("Capture Crystal Formation", style={"textAlign": "center"}),
-        # capture interval and start button
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Label("Capture Interval (s)"),
-                        dcc.Input(
-                            id="interval",
-                            type="number",
-                            value=1,
-                            style={"width": "100%"},
-                        ),
-                    ],
-                    style={"width": "50%"},
-                ),
-                html.Div(
-                    [
-                        html.Button("Start", id="start", n_clicks=0),
-                        html.Button("Stop", id="stop", n_clicks=0),
-                    ],
-                    style={"width": "50%"},
-                ),
-            ],
-            style={"display": "flex"},
+        html.Div(id="live-update-text"),
+        dcc.Graph(id="live-update-graph", style={"height": "80vw"}),
+        dcc.Interval(
+            id="interval-component",
+            interval=15 * 1000,
+            n_intervals=0,  # in milliseconds
         ),
-        html.Div(
-            [
-                dcc.Graph(
-                    id="image",
-                    style={"width": "100%", "height": "100%"},
-                    config={"displayModeBar": False},
-                )
-            ],
+    ],
+    style={"padding": "20px", "textAlign": "left"},
+)
+
+
+@app.callback(
+    Output("live-update-text", "children"), Input("interval-component", "n_intervals")
+)
+def update_text(n):
+    style = {"padding": "5px", "fontSize": "16px"}
+    return [
+        html.Span(
+            f'Last capture triggered at: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+            style=style,
         ),
     ]
-)
 
 
-# callback to update the image, this is where the camera handling code will go
-@callback(
-    Output("image", "figure"),
-    Input("start", "n_clicks"),
-    Input("stop", "n_clicks"),
-    State("interval", "value"),
+@app.callback(
+    Output("live-update-graph", "figure"),
+    Input("interval-component", "n_intervals"),
+    State("live-update-graph", "figure"),
 )
-def update_image(start, stop, interval):
-    if start > stop:
-        camera = get_camera()
-        converter = get_bgr_converter()
-        grabResult = grab_single_frame(camera)
-        img = get_img_from_grab_result(grabResult, converter)
-        return {
-            "data": [{"z": img}],
-            "layout": {
-                "xaxis": {"visible": False},
-                "yaxis": {"visible": False},
-                "margin": {"l": 0, "r": 0, "t": 0, "b": 0},
-            },
-        }
-    else:
-        return {
-            "data": [{"z": [[0]]}],
-            "layout": {
-                "xaxis": {"visible": False},
-                "yaxis": {"visible": False},
-                "margin": {"l": 0, "r": 0, "t": 0, "b": 0},
-            },
-        }
+def update_graph(n, fig):
+    camera = get_camera()
+    converter = get_bgr_converter()
+    grabResult = grab_single_frame(camera)
+    img = get_img_from_grab_result(grabResult, converter)
+    fig = px.imshow(img, title=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    return fig
+
+
+if __name__ == "__main__":
+    app.run_server(debug=True, port=8050)

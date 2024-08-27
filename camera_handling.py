@@ -3,11 +3,11 @@ from pypylon import pylon
 
 def get_camera():
     camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-    camera.RegisterConfiguration(
-        pylon.SoftwareTriggerConfiguration(),
-        pylon.RegistrationMode_ReplaceAll,
-        pylon.Cleanup_Delete,
-    )
+    # camera.RegisterConfiguration(
+    #     pylon.SoftwareTriggerConfiguration(),
+    #     pylon.RegistrationMode_ReplaceAll,
+    #     pylon.Cleanup_Delete,
+    # )
     return camera
 
 
