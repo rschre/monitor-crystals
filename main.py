@@ -28,7 +28,6 @@ app.layout = html.Div(
             interval=15 * 1000,
             n_intervals=0,  # in milliseconds
         ),
-        dcc.Store(id="img-store"),
     ],
     style={"padding": "20px", "textAlign": "left"},
 )
@@ -48,22 +47,14 @@ def update_text(n):
 
 
 @app.callback(
-    Output("img-store", "data"),
-    Input("interval-component", "n_intervals"),
-    State("img-store", "data"),
-)
-def update_img_store(n):
-    grabResult = grab_single_frame(camera)
-    img = get_img_from_grab_result(grabResult, converter)
-    return img
-
-
-@app.callback(
     Output("live-update-graph", "figure"),
     Input("interval-component", "n_intervals"),
-    Input("img-store", "data"),
+    State("live-update-graph", "figure"),
 )
-def update_graph(n, img):
+def update_graph(n, fig):
+    grabResult = grab_single_frame(camera)
+    img = get_img_from_grab_result(grabResult, converter)
+
     fig = px.imshow(img, title=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     return fig
 
