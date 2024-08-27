@@ -1,5 +1,7 @@
 import datetime
+from tkinter import filedialog
 
+import cv2
 import numpy as np
 import plotly.express as px
 from dash import Dash, Input, Output, State, callback, dcc, html
@@ -12,6 +14,9 @@ from camera_handling import (
     get_img_from_grab_result,
     grab_single_frame,
 )
+from helpers import mse
+
+data_folder = filedialog.askdirectory()
 
 camera = get_camera()
 converter = get_bgr_converter()
@@ -58,7 +63,17 @@ def update_graph(n, fig):
     grabResult = grab_single_frame(camera)
     img = get_img_from_grab_result(grabResult, converter)
 
+    if fig is not None:
+        print(fig)
+        latest = fig["data"][0]["z"]
+        if mse(latest, img) < 5:
+            return fig
+
     fig = px.imshow(img, title=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    img.save(
+        f"{data_folder}/temp/img_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+    )
     return fig
 
 
