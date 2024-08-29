@@ -94,13 +94,13 @@ class CrystalCapture:
 
         if not os.path.exists(self.data_loc.get()):
             os.makedirs(self.data_loc.get())
-        
+
         if self.latest_img is None:
             self.latest_img = img
             cv2.imwrite(
                 os.path.join(
                     self.data_loc.get(),
-                    f"{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png",
+                    f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png',
                 ),
                 img,
             )
@@ -114,18 +114,22 @@ class CrystalCapture:
             toolbar.update()
             canvas.get_tk_widget().grid(column=0, row=1)
             return
-        
+
         m = mse(self.latest_img, img)
-        
+
         if m < self.min_mse.get():
-            logger.info(f"{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Skipping capture. MSE: {m}")
+            logger.info(
+                f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Skipping capture. MSE: {m}'
+            )
             return
-        
-        logger.info(f"{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Capturing image. MSE: {m}")
+
+        logger.info(
+            f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Capturing image. MSE: {m}'
+        )
         cv2.imwrite(
             os.path.join(
                 self.data_loc.get(),
-                f"{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png",
+                f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png',
             ),
             img,
         )
