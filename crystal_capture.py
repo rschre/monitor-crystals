@@ -34,8 +34,8 @@ class CrystalCapture:
         self.latest_img = None
 
         self.data_loc = StringVar()
-        self.exposure_time = DoubleVar()
-        self.capture_interval = DoubleVar()
+        self.exposure_time = IntVar()
+        self.capture_interval = IntVar()
         self.min_mse = DoubleVar()
         self.camera_name = StringVar()
 
@@ -88,7 +88,36 @@ class CrystalCapture:
             column=2, row=5, sticky=E
         )
 
+        self.img_view = Toplevel(self.root)
+        self.img_view.title("Latest Image")
+        self.img_view.withdraw()
+        self.img_view.figure = Figure()
+        self.img_view.ax = self.img_view.figure.add_subplot(111)
+        self.img_view.canvas = FigureCanvasTkAgg(
+            self.img_view.figure, master=self.img_view
+        )
+        self.img_view.canvas.draw()
+        self.img_view.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        self.img_view.toolbar = NavigationToolbar2Tk(
+            self.img_view.canvas, self.img_view
+        )
+        self.img_view.toolbar.update()
+        self.img_view.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+
+    def _display_img(self, img: ArrayLike):
+
+        self.img_view.ax.clear()
+        self.img_view.ax.title.set_text(
+            f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
+        )
+        self.img_view.ax.imshow(img)
+        self.img_view.canvas.draw()
+        self.img_view.update()
+        self.img_view.deiconify()
+
     def _run_capture_loop(self):
+        self.root.after(self.capture_interval.get() * 1000, self._run_capture_loop)
+
         grab_result = grab_single_frame(self.camera)
         img = get_img_from_grab_result(grab_result, self.converter)
 
@@ -104,15 +133,7 @@ class CrystalCapture:
                 ),
                 img,
             )
-            fig = Figure()
-            ax = fig.add_subplot(111)
-            ax.imshow(img)
-            canvas = FigureCanvasTkAgg(fig, master=self.root)
-            canvas.draw()
-            canvas.get_tk_widget().grid(column=0, row=1)
-            toolbar = NavigationToolbar2Tk(canvas, self.root)
-            toolbar.update()
-            canvas.get_tk_widget().grid(column=0, row=1)
+            self._display_img(img)
             return
 
         m = mse(self.latest_img, img)
@@ -122,6 +143,8 @@ class CrystalCapture:
                 f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Skipping capture. MSE: {m}'
             )
             return
+
+        self._display_img(img)
 
         logger.info(
             f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Capturing image. MSE: {m}'
@@ -134,17 +157,7 @@ class CrystalCapture:
             img,
         )
 
-        fig = Figure()
-        ax = fig.add_subplot(111)
-        ax.imshow(img)
-        canvas = FigureCanvasTkAgg(fig, master=self.root)
-        canvas.draw()
-        canvas.get_tk_widget().grid(column=0, row=1)
-        toolbar = NavigationToolbar2Tk(canvas, self.root)
-        toolbar.update()
-        canvas.get_tk_widget().grid(column=0, row=1)
-
-        time.sleep(self.capture_interval.get())
+        self.latest_img = img
 
     def _select_folder(self):
         """Opens a file dialog to select the folder to save the capture to.
@@ -155,7 +168,7 @@ class CrystalCapture:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     root = Tk()
     cc_app = CrystalCapture(root, config_path="config.toml")
     root.mainloop()
