@@ -151,22 +151,24 @@ class CrystalCapture:
 
         if m < self.min_mse.get():
             logger.info(
-                f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Skipping capture. MSE: {m}'
+                f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}: Skipping capture. MSE: {m:.2f}'
             )
             return
 
         self._display_img(img)
 
         logger.info(
-            f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}Capturing image. MSE: {m}'
+            f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}: Capturing image. MSE: {m:.2f}'
         )
+        filename = f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'
         cv2.imwrite(
             os.path.join(
                 self.data_loc.get(),
-                f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png',
+                filename,
             ),
             img,
         )
+        logger.info(f"Saved image to {os.path.join(self.data_loc.get(), filename)}")
 
         self.latest_img = img
 
