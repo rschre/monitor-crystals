@@ -3,8 +3,6 @@ from tkinter import filedialog
 
 import cv2
 import numpy as np
-import plotly.express as px
-from dash import Dash, Input, Output, State, callback, dcc, html
 from pypylon import pylon
 from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 

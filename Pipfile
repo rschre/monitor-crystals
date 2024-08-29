@@ -4,14 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-plotly = "*"
 pandas = "*"
 matplotlib = "*"
 segment-anything = {git = "git+https://github.com/facebookresearch/segment-anything.git"}
 pypylon = "*"
 opencv-python = "*"
-dash = "*"
 toml = "*"
+numpy = "~=1.26"
 
 [dev-packages]
 black = "*"
