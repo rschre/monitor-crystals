@@ -11,6 +11,7 @@ segment-anything = {git = "git+https://github.com/facebookresearch/segment-anyth
 pypylon = "*"
 opencv-python = "*"
 dash = "*"
+toml = "*"
 
 [dev-packages]
 black = "*"

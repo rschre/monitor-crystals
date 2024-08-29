@@ -1,0 +1,12 @@
+title = "Crystal Capture"
+
+[camera]
+
+exposure_time = 1e6   # in microseconds
+capture_interval = 15 # in seconds
+min_mse = 300         # minimum mean square error for image to be saved
+
+[storage]
+
+# Use double backslashes or forward slashes
+data_location = "D:\\test_field_software"
