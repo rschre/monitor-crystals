@@ -1,18 +1,13 @@
+import datetime
 import logging
 import os
-import pathlib
-import time
-import traceback
-import datetime
 from tkinter import *
 from tkinter import filedialog, messagebox, ttk
 
 import cv2
-import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
-from helpers import mse
 
 from camera_handling import (
     get_bgr_converter,
@@ -20,7 +15,7 @@ from camera_handling import (
     get_img_from_grab_result,
     grab_single_frame,
 )
-from helpers import load_config
+from helpers import load_config, mse
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +99,14 @@ class CrystalCapture:
         self.img_view.toolbar.update()
         self.img_view.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
+        self.countdown = Toplevel(self.root)
+        self.countdown.title("Capture Countdown")
+        self.countdown.geometry("400x50")
+        self.countdown.protocol("WM_DELETE_WINDOW", self._on_closing)
+        self.countdown.label = Label(self.countdown, text="", font=("Helvetica", 24))
+        self.countdown.label.pack()
+        self.countdown.withdraw()
+
     def _display_img(self, img: ArrayLike):
 
         self.img_view.ax.clear()
@@ -115,8 +118,16 @@ class CrystalCapture:
         self.img_view.update()
         self.img_view.deiconify()
 
+        # stop the capture loop if the window is closed
+        self.img_view.protocol("WM_DELETE_WINDOW", self._on_closing)
+
     def _run_capture_loop(self):
+
+        # hide main window
+        self.root.withdraw()
+
         self.root.after(self.capture_interval.get() * 1000, self._run_capture_loop)
+        self._display_countdown(self.capture_interval.get() - 1)
 
         grab_result = grab_single_frame(self.camera)
         img = get_img_from_grab_result(grab_result, self.converter)
@@ -165,6 +176,22 @@ class CrystalCapture:
         """
         folder = filedialog.askdirectory()
         self.data_loc.set(folder)
+
+    def _on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.camera.Close()
+            self.root.destroy()
+
+    def _display_countdown(self, count):
+        self.countdown.deiconify()
+        if count == 0:
+            self.countdown.withdraw()
+            return
+        text = f"Next capture in {count} seconds"
+        self.countdown.label["text"] = text
+
+        if count > 0:
+            self.countdown.after(950, self._display_countdown, count - 1)
 
 
 if __name__ == "__main__":
