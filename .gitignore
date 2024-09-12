@@ -1,5 +1,7 @@
 *.pth
+*.pt
 test_*.*
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

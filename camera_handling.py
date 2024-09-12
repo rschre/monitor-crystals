@@ -19,7 +19,10 @@ def get_bgr_converter():
 
 
 def set_camera_params(camera):
+    camera.Open()
     camera.ExposureTime.Value = 1e6  # 1s
+    camera.Gain.Value = 0
+    camera.Close()
 
 
 def grab_single_frame(camera):
